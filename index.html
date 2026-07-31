@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <meta name="theme-color" content="#1a2a3a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>متابعة الصلاة</title>
+    <style>
+        /* ========== CSS Variables & Reset ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --bg: #f7f3eb;
+            --bg-card: #ffffff;
+            --bg-header: #1a2a3a;
+            --text: #1e1e2a;
+            --text-muted: #5a5a6e;
+            --text-light: #f0ece6;
+            --border: #dcd6ce;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --radius: 14px;
+            --radius-sm: 10px;
+            --transition: 0.25s ease;
+
+            --green: #2b7a4b;
+            --green-bg: #e6f4ed;
+            --green-light: #4caF7a;
+            --orange: #c97a2b;
+            --orange-bg: #fdf0e0;
+            --red: #b33a3a;
+            --red-bg: #fde8e8;
+            --gray: #9a9aae;
+            --gray-bg: #f0ede8;
+
+            --gold: #c9a84c;
+            --gold-dim: #e8dbb5;
+
+            --font: 'Segoe UI', 'Tahoma', 'Arial', system-ui, -apple-system, sans-serif;
+            --font-arabic: 'Noto Naskh Arabic', 'Amiri', 'Tahoma', serif;
+        }
+        [data-theme="dark"] {
+            --bg: #13131f;
+            --bg-card: #1e1e32;
+            --bg-header: #0b0b16;
+            --text: #e8e4de;
+            --text-muted: #a8a4b8;
+            --text-light: #e8e4de;
+            --border: #2e2e44;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --gray-bg: #2a2a3e;
+            --green-bg: #1a3a2a;
+            --orange-bg: #3a2a1a;
+            --red-bg: #3a1a1a;
+        }
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            transition: background var(--transition), color var(--transition);
+            padding: 0 0 80px 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* ========== Scrollbar ========== */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+        /* ========== Container ========== */
+        .app {
+            max-width: 480px;
+            width: 100%;
+            padding: 0 14px 20px;
+        }
+        /* ========== Header ========== */
+        .header {
+            background: var(--bg-header);
+            color: var(--text-light);
+            padding: 16px 18px;
+            border-radius: 0 0 var(--radius) var(--radius);
+            margin: 0 -14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+        .header h1 {
+            font-family: var(--font-arabic);
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #f5e6c8, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header-actions button {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-actions button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            opacity: 1;
+        }
+        .header-actions .theme-toggle {
+            font-size: 1.2rem;
+        }
+        /* ========== Tabs ========== */
+        .tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 4px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .tabs button {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font-arabic);
+        }
+        .tabs button.active {
+            background: var(--bg-header);
+            color: var(--text-light);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .tabs button:not(.active):hover {
+            background: var(--gray-bg);
+            color: var(--text);
+        }
+        /* ========== Views ========== */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .view.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* ========== Calendar ========== */
+        .calendar-wrapper {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px 14px 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            gap: 6px;
+        }
+        .cal-nav .month-year {
+            font-family: var(--font-arabic);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .cal-nav .month-year:hover {
+            background: var(--gray-bg);
+        }
+        .cal-nav .month-year .hijri {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            display: block;
+            text-align: center;
+        }
+        .cal-nav button {
+            background: var(--gray-bg);
+            border: none;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        .cal-nav button:hover {
+            background: var(--gold);
+            color: #fff;
+        }
+        .cal-nav button:active {
+            transform: scale(0.94);
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .cal-grid .wkday {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 4px 0;
+            font-family: var(--font-arabic);
+        }
+        .cal-grid .day {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text);
+            background: transparent;
+            transition: all 0.15s;
+            position: relative;
+            gap: 1px;
+            min-height: 40px;
+        }
+        .cal-grid .day:hover {
+            background: var(--gray-bg);
+        }
+        .cal-grid .day.other-month {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .cal-grid .day.today {
+            background: var(--gold-dim);
+            font-weight: 700;
+        }
+        .cal-grid .day.selected {
+            background: var(--bg-header);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .cal-grid .day .dot {
+            width: 18px;
+            height: 4px;
+            border-radius: 4px;
+            margin-top: 2px;
+            transition: all 0.2s;
+        }
+        .cal-grid .day .dot.green {
+            background: var(--green);
+        }
+        .cal-grid .day .dot.orange {
+            background: var(--orange);
+        }
+        .cal-grid .day .dot.red {
+            background: var(--red);
+        }
+        .cal-grid .day .dot.gray {
+            background: var(--gray);
+        }
+        .cal-grid .day .dot.mixed {
+            background: linear-gradient(90deg, var(--green) 33%, var(--orange) 33%, var(--red) 66%);
+        }
+        .cal-grid .day .day-num {
+            line-height: 1;
+        }
+        /* ========== Daily Prayer List ========== */
+        .daily-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 16px 14px 14px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .daily-section .day-label {
+            font-family: var(--font-arabic);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: var(--text);
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .daily-section .day-label .hijri-date {
+            font-size: 0.8rem;
+            font-weight: 400;
+            color: var(--text-muted);
+        }
+        .prayer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            gap: 10px;
+        }
+        .prayer-item:hover {
+            background: var(--gray-bg);
+        }
+        .prayer-item:active {
+            transform: scale(0.98);
+        }
+        .prayer-item .name {
+            font-family: var(--font-arabic);
+            font-size: 1rem;
+            font-weight: 600;
+            flex: 1;
+        }
+        .prayer-item .status {
+            font-size: 0.8rem;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: all 0.25s;
+            white-space: nowrap;
+            min-width: 60px;
+            text-align: center;
+        }
+        .prayer-item .status.unrecorded {
+            background: var(--gray-bg);
+            color: var(--text-muted);
+        }
+        .prayer-item .status.performed {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+        .prayer-item .status.qada {
+            background: var(--orange-bg);
+            color: var(--orange);
+        }
+        .prayer-item .status.missed {
+            background: var(--red-bg);
+            color: var(--red);
+        }
+        .prayer-item .icon-indicator {
+            font-size: 1.1rem;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        /* ========== Stats ========== */
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .stats-tabs {
+            display: flex;
+            gap: 6px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 4px;
+            border: 1px solid var(--border);
+        }
+        .stats-tabs button {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font-arabic);
+        }
+        .stats-tabs button.active {
+            background: var(--bg-header);
+            color: var(--text-light);
+        }
+        .stats-tabs button:not(.active):hover {
+            background: var(--gray-bg);
+        }
+        .stats-view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .stats-view.active {
+            display: block;
+        }
+        /* Monthly Stats */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .stats-summary .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            padding: 12px 6px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .stats-summary .stat-card .num {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: block;
+            line-height: 1.2;
+        }
+        .stats-summary .stat-card .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-family: var(--font-arabic);
+        }
+        .stat-card.green .num {
+            color: var(--green);
+        }
+        .stat-card.orange .num {
+            color: var(--orange);
+        }
+        .stat-card.red .num {
+            color: var(--red);
+        }
+        .stat-card.gold .num {
+            color: var(--gold);
+        }
+        /* Bar Chart */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            padding: 14px 10px 10px;
+            border: 1px solid var(--border);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-arabic);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+            color: var(--text);
+        }
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 150px;
+            gap: 4px;
+            padding-top: 6px;
+        }
+        .chart-bars .bar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            height: 100%;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .chart-bars .bar-wrap .bar {
+            width: 100%;
+            max-width: 32px;
+            min-height: 2px;
+            border-radius: 4px 4px 0 0;
+            background: var(--gold);
+            transition: height 0.6s ease;
+            position: relative;
+        }
+        .chart-bars .bar-wrap .bar-label {
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            text-align: center;
+            font-weight: 500;
+            font-family: var(--font-arabic);
+            line-height: 1.2;
+        }
+        .chart-bars .bar-wrap .bar-value {
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: var(--text);
+            opacity: 0.7;
+        }
+        /* Yearly stats extra */
+        .yearly-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .yearly-grid .month-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-sm);
+            padding: 10px 4px;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        .yearly-grid .month-card .month-name {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: var(--font-arabic);
+        }
+        .yearly-grid .month-card .month-rate {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+            display: block;
+            margin-top: 2px;
+        }
+        .yearly-grid .month-card .month-rate.high {
+            color: var(--green);
+        }
+        .yearly-grid .month-card .month-rate.med {
+            color: var(--orange);
+        }
+        .yearly-grid .month-card .month-rate.low {
+            color: var(--red);
+        }
+        /* ========== Year Picker Modal ========== */
+        .year-picker-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .year-picker-overlay.open {
+            display: flex;
+        }
+        .year-picker-modal {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px 20px 20px;
+            max-width: 340px;
+            width: 100%;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .year-picker-modal h3 {
+            font-family: var(--font-arabic);
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .year-picker-modal .years-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .year-picker-modal .years-grid button {
+            padding: 10px 0;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .year-picker-modal .years-grid button:hover {
+            background: var(--bg-header);
+            color: var(--text-light);
+            border-color: var(--bg-header);
+        }
+        .year-picker-modal .years-grid button.active-year {
+            background: var(--bg-header);
+            color: var(--text-light);
+            border-color: var(--bg-header);
+        }
+        .year-picker-modal .close-year {
+            display: block;
+            width: 100%;
+            margin-top: 14px;
+            padding: 10px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: var(--gray-bg);
+            color: var(--text);
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-arabic);
+        }
+        .year-picker-modal .close-year:hover {
+            background: var(--border);
+        }
+        /* ========== Reset Button ========== */
+        .reset-area {
+            margin-top: 16px;
+            text-align: center;
+        }
+        .reset-area button {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 18px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-arabic);
+        }
+        .reset-area button:hover {
+            background: var(--red-bg);
+            color: var(--red);
+            border-color: var(--red);
+        }
+        /* ========== Responsive ========== */
+        @media (max-width: 400px) {
+            .cal-grid .day {
+                font-size: 0.75rem;
+                min-height: 34px;
+            }
+            .cal-grid .day .dot {
+                width: 14px;
+                height: 3px;
+            }
+            .prayer-item {
+                padding: 8px 8px;
+            }
+            .prayer-item .status {
+                font-size: 0.7rem;
+                padding: 3px 10px;
+                min-width: 48px;
+            }
+            .stats-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .yearly-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header h1 {
+                font-size: 1.1rem;
+            }
+        }
+        @media (min-width: 600px) {
+            .app {
+                max-width: 520px;
+            }
+        }
+        /* ========== Utility ========== */
+        .text-center {
+            text-align: center;
+        }
+        .mt-8 {
+            margin-top: 8px;
+        }
+        .mb-8 {
+            margin-bottom: 8px;
+        }
+        .gap-4 {
+            gap: 4px;
+        }
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* ========== Toast ========== */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--bg-header);
+            color: var(--text-light);
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-family: var(--font-arabic);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s ease;
+            z-index: 200;
+            white-space: nowrap;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        /* ========== No data placeholder ========== */
+        .no-data {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 30px 0;
+            font-family: var(--font-arabic);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== YEAR PICKER ===== -->
+    <div class="year-picker-overlay" id="yearPicker">
+        <div class="year-picker-modal">
+            <h3>اختر السنة</h3>
+            <div class="years-grid" id="yearsGrid"></div>
+            <button class="close-year" id="closeYearPicker">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- ===== APP ===== -->
+    <div class="app" id="app">
+
+        <!-- HEADER -->
+        <header class="header">
+            <h1>✦ متابعة الصلاة</h1>
+            <div class="header-actions">
+                <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الليلي">🌙</button>
+            </div>
+        </header>
+
+        <!-- TABS -->
+        <div class="tabs" role="tablist">
+            <button class="active" data-tab="daily" role="tab">📅 اليومي</button>
+            <button data-tab="stats" role="tab">📊 الإحصائيات</button>
+        </div>
+
+        <!-- ===== VIEW: DAILY ===== -->
+        <div class="view active" id="viewDaily" role="tabpanel">
+            <!-- Calendar -->
+            <div class="calendar-wrapper">
+                <div class="cal-nav">
+                    <button id="prevMonth" aria-label="الشهر السابق">‹</button>
+                    <div class="month-year" id="monthYearDisplay">
+                        <span id="gregMonthYear"></span>
+                        <span class="hijri" id="hijriMonthYear"></span>
+                    </div>
+                    <button id="nextMonth" aria-label="الشهر التالي">›</button>
+                </div>
+                <div class="cal-grid" id="calendarGrid">
+                    <!-- Weekday headers + days injected by JS -->
+                </div>
+            </div>
+
+            <!-- Daily Prayers -->
+            <div class="daily-section">
+                <div class="day-label">
+                    <span id="selectedDayLabel">اليوم: —</span>
+                    <span class="hijri-date" id="selectedHijriLabel"></span>
+                </div>
+                <div id="prayerList">
+                    <!-- Injected by JS -->
+                </div>
+                <div class="reset-area">
+                    <button id="resetToday">↺ إعادة تعيين اليوم</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VIEW: STATS ===== -->
+        <div class="view" id="viewStats" role="tabpanel">
+            <div class="stats-container">
+                <!-- Stats sub-tabs -->
+                <div class="stats-tabs">
+                    <button class="active" data-stats="monthly">📆 شهري</button>
+                    <button data-stats="yearly">📈 سنوي</button>
+                </div>
+
+                <!-- Monthly Stats -->
+                <div class="stats-view active" id="statsMonthly">
+                    <div class="stats-summary" id="monthlySummary">
+                        <!-- Injected by JS -->
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-title" id="monthlyChartTitle">توزيع الصلوات</div>
+                        <div class="chart-bars" id="monthlyChartBars">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yearly Stats -->
+                <div class="stats-view" id="statsYearly">
+                    <div class="chart-container">
+                        <div class="chart-title" id="yearlyChartTitle">نسبة الالتزام الشهرية</div>
+                        <div class="chart-bars" id="yearlyChartBars">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                    <div class="yearly-grid" id="yearlyGrid">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ====================================================================
+        //  DATA LAYER
+        // ====================================================================
+        const STORAGE_KEY = 'salah_tracker_data';
+        const THEME_KEY = 'salah_tracker_theme';
+
+        const PRAYER_NAMES = ['الفجر', 'الظهر', 'العصر', 'المغرب', 'العشاء'];
+        const PRAYER_IDS = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+        const STATES = ['unrecorded', 'performed', 'qada', 'missed'];
+        const STATE_LABELS = {
+            unrecorded: 'غير مسجلة',
+            performed: 'أُديت',
+            qada: 'قضاء',
+            missed: 'تفويت'
+        };
+        const STATE_ICONS = {
+            unrecorded: '○',
+            performed: '✔',
+            qada: '◐',
+            missed: '✗'
+        };
+        const STATE_CLASSES = {
+            unrecorded: 'unrecorded',
+            performed: 'performed',
+            qada: 'qada',
+            missed: 'missed'
+        };
+        const STATE_COLORS = {
+            unrecorded: 'gray',
+            performed: 'green',
+            qada: 'orange',
+            missed: 'red'
+        };
+
+        // Gregorian month names in Arabic
+        const MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ];
+        const SHORT_MONTHS_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+            'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+        ];
+        const WEEKDAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const WEEKDAYS_SHORT = ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'];
+
+        // ====================================================================
+        //  STATE
+        // ====================================================================
+        let data = {};
+        let currentDate = new Date(); // the month we're viewing
+        let selectedDate = new Date(); // the selected day
+        let currentTheme = 'light';
+        let currentStatsTab = 'monthly';
+        let currentTab = 'daily';
+
+        // ====================================================================
+        //  DATA HELPERS
+        // ====================================================================
+        function loadData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) data = JSON.parse(raw);
+                else data = {};
+            } catch (_) { data = {}; }
+            // ensure dates are strings
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function getDayKey(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function getDayData(date) {
+            const key = getDayKey(date);
+            if (!data[key]) {
+                data[key] = {};
+                PRAYER_IDS.forEach(id => { data[key][id] = 'unrecorded'; });
+            }
+            return data[key];
+        }
+
+        function setPrayerState(date, prayerId, state) {
+            const key = getDayKey(date);
+            if (!data[key]) {
+                data[key] = {};
+                PRAYER_IDS.forEach(id => { data[key][id] = 'unrecorded'; });
+            }
+            data[key][prayerId] = state;
+            saveData();
+        }
+
+        function getPrayerState(date, prayerId) {
+            const key = getDayKey(date);
+            if (!data[key]) return 'unrecorded';
+            return data[key][prayerId] || 'unrecorded';
+        }
+
+        function getDayStats(date) {
+            const key = getDayKey(date);
+            if (!data[key]) {
+                return { performed: 0, qada: 0, missed: 0, unrecorded: 5, total: 5 };
+            }
+            let performed = 0,
+                qada = 0,
+                missed = 0,
+                unrecorded = 0;
+            PRAYER_IDS.forEach(id => {
+                const s = data[key][id] || 'unrecorded';
+                if (s === 'performed') performed++;
+                else if (s === 'qada') qada++;
+                else if (s === 'missed') missed++;
+                else unrecorded++;
+            });
+            return { performed, qada, missed, unrecorded, total: 5 };
+        }
+
+        function getDayOverallStatus(date) {
+            const stats = getDayStats(date);
+            if (stats.performed === 5) return 'green';
+            if (stats.missed > 0) return 'red';
+            if (stats.qada > 0) return 'orange';
+            if (stats.unrecorded === 5) return 'gray';
+            return 'mixed';
+        }
+
+        function getMonthStats(year, month) {
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let performed = 0,
+                qada = 0,
+                missed = 0,
+                unrecorded = 0;
+            let totalPrayers = 0;
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const stats = getDayStats(date);
+                performed += stats.performed;
+                qada += stats.qada;
+                missed += stats.missed;
+                unrecorded += stats.unrecorded;
+                totalPrayers += 5;
+            }
+            const recorded = performed + qada + missed;
+            const rate = recorded > 0 ? Math.round((performed / recorded) * 100) : 0;
+            return { performed, qada, missed, unrecorded, total: totalPrayers, rate, days: daysInMonth };
+        }
+
+        function getYearStats(year) {
+            const months = [];
+            for (let m = 0; m < 12; m++) {
+                const stats = getMonthStats(year, m);
+                months.push({
+                    month: m,
+                    ...stats,
+                    label: SHORT_MONTHS_AR[m]
+                });
+            }
+            return months;
+        }
+
+        // ====================================================================
+        //  HIJRI CONVERSION (simple approximation using Intl)
+        // ====================================================================
+        function getHijriDate(date) {
+            try {
+                const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+                return formatter.format(date);
+            } catch (_) {
+                return '';
+            }
+        }
+
+        function getHijriMonthYear(date) {
+            try {
+                const formatter = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+                return formatter.format(date);
+            } catch (_) {
+                return '';
+            }
+        }
+
+        // ====================================================================
+        //  RENDER: CALENDAR
+        // ====================================================================
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const today = new Date();
+            const todayKey = getDayKey(today);
+            const selectedKey = getDayKey(selectedDate);
+
+            const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Update header
+            document.getElementById('gregMonthYear').textContent =
+                `${MONTHS_AR[month]} ${year}`;
+            const hijriStr = getHijriMonthYear(currentDate);
+            document.getElementById('hijriMonthYear').textContent = hijriStr || '';
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            // Weekday headers
+            WEEKDAYS_SHORT.forEach(w => {
+                const el = document.createElement('div');
+                el.className = 'wkday';
+                el.textContent = w;
+                grid.appendChild(el);
+            });
+
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                const el = document.createElement('div');
+                el.className = 'day other-month';
+                el.innerHTML = '&nbsp;';
+                grid.appendChild(el);
+            }
+
+            // Days
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const key = getDayKey(date);
+                const isToday = key === todayKey;
+                const isSelected = key === selectedKey;
+                const status = getDayOverallStatus(date);
+
+                const el = document.createElement('div');
+                el.className = 'day';
+                if (isToday) el.classList.add('today');
+                if (isSelected) el.classList.add('selected');
+
+                const numSpan = document.createElement('span');
+                numSpan.className = 'day-num';
+                numSpan.textContent = d;
+                el.appendChild(numSpan);
+
+                const dot = document.createElement('span');
+                dot.className = `dot ${status}`;
+                el.appendChild(dot);
+
+                el.dataset.date = key;
+                el.addEventListener('click', () => {
+                    selectedDate = new Date(year, month, d);
+                    renderCalendar();
+                    renderDaily();
+                });
+
+                grid.appendChild(el);
+            }
+        }
+
+        // ====================================================================
+        //  RENDER: DAILY PRAYERS
+        // ====================================================================
+        function renderDaily() {
+            const date = selectedDate;
+            const key = getDayKey(date);
+            const dayData = getDayData(date);
+
+            // Label
+            const weekday = WEEKDAYS_AR[date.getDay()];
+            const dayNum = date.getDate();
+            const monthName = MONTHS_AR[date.getMonth()];
+            const year = date.getFullYear();
+            document.getElementById('selectedDayLabel').textContent =
+                `${weekday}، ${dayNum} ${monthName} ${year}`;
+
+            const hijriLabel = getHijriDate(date);
+            document.getElementById('selectedHijriLabel').textContent = hijriLabel || '';
+
+            // Prayer list
+            const container = document.getElementById('prayerList');
+            container.innerHTML = '';
+
+            PRAYER_IDS.forEach((id, idx) => {
+                const state = getPrayerState(date, id);
+                const label = STATE_LABELS[state] || 'غير مسجلة';
+                const icon = STATE_ICONS[state] || '○';
+                const cls = STATE_CLASSES[state] || 'unrecorded';
+
+                const item = document.createElement('div');
+                item.className = 'prayer-item';
+                item.dataset.prayer = id;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'name';
+                nameSpan.textContent = PRAYER_NAMES[idx];
+                item.appendChild(nameSpan);
+
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'icon-indicator';
+                iconSpan.textContent = icon;
+                item.appendChild(iconSpan);
+
+                const statusSpan = document.createElement('span');
+                statusSpan.className = `status ${cls}`;
+                statusSpan.textContent = label;
+                item.appendChild(statusSpan);
+
+                item.addEventListener('click', () => {
+                    cyclePrayerState(date, id);
+                });
+
+                container.appendChild(item);
+            });
+        }
+
+        function cyclePrayerState(date, prayerId) {
+            const current = getPrayerState(date, prayerId);
+            const idx = STATES.indexOf(current);
+            const next = STATES[(idx + 1) % STATES.length];
+            setPrayerState(date, prayerId, next);
+            renderDaily();
+            renderCalendar();
+            // Also update stats if visible
+            if (currentTab === 'stats') renderStats();
+            showToast(`تم تغيير ${PRAYER_NAMES[PRAYER_IDS.indexOf(prayerId)]} إلى ${STATE_LABELS[next]}`);
+        }
+
+        function resetToday() {
+            const date = selectedDate;
+            const key = getDayKey(date);
+            data[key] = {};
+            PRAYER_IDS.forEach(id => { data[key][id] = 'unrecorded'; });
+            saveData();
+            renderDaily();
+            renderCalendar();
+            if (currentTab === 'stats') renderStats();
+            showToast('تم إعادة تعيين اليوم');
+        }
+
+        // ====================================================================
+        //  RENDER: STATS
+        // ====================================================================
+        function renderStats() {
+            if (currentStatsTab === 'monthly') renderMonthlyStats();
+            else renderYearlyStats();
+        }
+
+        function renderMonthlyStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const stats = getMonthStats(year, month);
+
+            // Summary cards
+            const container = document.getElementById('monthlySummary');
+            container.innerHTML = `
+                <div class="stat-card green"><span class="num">${stats.performed}</span><span class="label">أُديت</span></div>
+                <div class="stat-card orange"><span class="num">${stats.qada}</span><span class="label">قضاء</span></div>
+                <div class="stat-card red"><span class="num">${stats.missed}</span><span class="label">تفويت</span></div>
+                <div class="stat-card gold" style="grid-column: span 3;"><span class="num">${stats.rate}%</span><span class="label">نسبة الالتزام</span></div>
+            `;
+
+            // Chart: distribution of all prayers in the month
+            const chartContainer = document.getElementById('monthlyChartBars');
+            const total = stats.performed + stats.qada + stats.missed + stats.unrecorded;
+            const maxVal = Math.max(stats.performed, stats.qada, stats.missed, stats.unrecorded, 1);
+
+            const items = [
+                { label: 'أُديت', value: stats.performed, color: 'var(--green)' },
+                { label: 'قضاء', value: stats.qada, color: 'var(--orange)' },
+                { label: 'تفويت', value: stats.missed, color: 'var(--red)' },
+                { label: 'غير مسجلة', value: stats.unrecorded, color: 'var(--gray)' },
+            ];
+
+            chartContainer.innerHTML = items.map(item => {
+                const pct = maxVal > 0 ? Math.round((item.value / maxVal) * 100) : 0;
+                const height = Math.max(4, pct);
+                return `
+                    <div class="bar-wrap">
+                        <div class="bar" style="height:${height}%;background:${item.color};"></div>
+                        <span class="bar-value">${item.value}</span>
+                        <span class="bar-label">${item.label}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('monthlyChartTitle').textContent =
+                `توزيع الصلوات - ${MONTHS_AR[month]} ${year}`;
+        }
+
+        function renderYearlyStats() {
+            const year = currentDate.getFullYear();
+            const months = getYearStats(year);
+
+            // Chart: commitment rate per month
+            const chartContainer = document.getElementById('yearlyChartBars');
+            const maxRate = Math.max(...months.map(m => m.rate), 1);
+            const maxVal = Math.max(100, maxRate);
+
+            chartContainer.innerHTML = months.map(m => {
+                const pct = maxVal > 0 ? Math.round((m.rate / maxVal) * 100) : 0;
+                const height = Math.max(4, pct);
+                let color = 'var(--gold)';
+                if (m.rate >= 70) color = 'var(--green)';
+                else if (m.rate >= 40) color = 'var(--orange)';
+                else color = 'var(--red)';
+                return `
+                    <div class="bar-wrap">
+                        <div class="bar" style="height:${height}%;background:${color};"></div>
+                        <span class="bar-value">${m.rate}%</span>
+                        <span class="bar-label">${m.label}</span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('yearlyChartTitle').textContent =
+                `نسبة الالتزام الشهرية - ${year}`;
+
+            // Grid cards
+            const grid = document.getElementById('yearlyGrid');
+            grid.innerHTML = months.map(m => {
+                let cls = 'med';
+                if (m.rate >= 70) cls = 'high';
+                else if (m.rate < 40) cls = 'low';
+                return `
+                    <div class="month-card">
+                        <span class="month-name">${m.label}</span>
+                        <span class="month-rate ${cls}">${m.rate}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ====================================================================
+        //  TOAST
+        // ====================================================================
+        let toastTimeout = null;
+
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                el.classList.remove('show');
+            }, 1800);
+        }
+
+        // ====================================================================
+        //  THEME
+        // ====================================================================
+        function loadTheme() {
+            try {
+                const stored = localStorage.getItem(THEME_KEY);
+                if (stored) currentTheme = stored;
+                else {
+                    // System preference
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        currentTheme = 'dark';
+                    }
+                }
+            } catch (_) {}
+            applyTheme();
+        }
+
+        function applyTheme() {
+            const root = document.documentElement;
+            if (currentTheme === 'dark') {
+                root.setAttribute('data-theme', 'dark');
+                document.getElementById('themeToggle').textContent = '☀️';
+            } else {
+                root.removeAttribute('data-theme');
+                document.getElementById('themeToggle').textContent = '🌙';
+            }
+            localStorage.setItem(THEME_KEY, currentTheme);
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme();
+        }
+
+        // ====================================================================
+        //  YEAR PICKER
+        // ====================================================================
+        function openYearPicker() {
+            const overlay = document.getElementById('yearPicker');
+            const grid = document.getElementById('yearsGrid');
+            const currentYear = currentDate.getFullYear();
+            const startYear = 2024;
+            const endYear = new Date().getFullYear() + 5;
+
+            grid.innerHTML = '';
+            for (let y = startYear; y <= endYear; y++) {
+                const btn = document.createElement('button');
+                btn.textContent = y;
+                if (y === currentYear) btn.classList.add('active-year');
+                btn.addEventListener('click', () => {
+                    currentDate = new Date(y, currentDate.getMonth(), 1);
+                    // ensure selected date is in the same month
+                    const maxDay = new Date(y, currentDate.getMonth() + 1, 0).getDate();
+                    const day = Math.min(selectedDate.getDate(), maxDay);
+                    selectedDate = new Date(y, currentDate.getMonth(), day);
+                    renderCalendar();
+                    renderDaily();
+                    if (currentTab === 'stats') renderStats();
+                    overlay.classList.remove('open');
+                });
+                grid.appendChild(btn);
+            }
+            overlay.classList.add('open');
+        }
+
+        // ====================================================================
+        //  NAVIGATION
+        // ====================================================================
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            // Ensure selected date stays in bounds
+            const maxDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+            const day = Math.min(selectedDate.getDate(), maxDay);
+            selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+            renderCalendar();
+            renderDaily();
+            if (currentTab === 'stats') renderStats();
+        }
+
+        // ====================================================================
+        //  TABS
+        // ====================================================================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tabs button').forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === tab);
+            });
+            document.querySelectorAll('.view').forEach(v => {
+                v.classList.toggle('active', v.id === `view${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+            });
+            if (tab === 'stats') renderStats();
+        }
+
+        function switchStatsTab(tab) {
+            currentStatsTab = tab;
+            document.querySelectorAll('.stats-tabs button').forEach(b => {
+                b.classList.toggle('active', b.dataset.stats === tab);
+            });
+            document.querySelectorAll('.stats-view').forEach(v => {
+                v.classList.toggle('active', v.id === `stats${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+            });
+            renderStats();
+        }
+
+        // ====================================================================
+        //  INIT
+        // ====================================================================
+        function init() {
+            loadData();
+            loadTheme();
+
+            // Set current date to today
+            const today = new Date();
+            currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            // Ensure data exists for today
+            getDayData(selectedDate);
+            saveData();
+
+            // Render
+            renderCalendar();
+            renderDaily();
+
+            // --- Event listeners ---
+            // Tabs
+            document.querySelectorAll('.tabs button').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+
+            // Stats sub-tabs
+            document.querySelectorAll('.stats-tabs button').forEach(btn => {
+                btn.addEventListener('click', () => switchStatsTab(btn.dataset.stats));
+            });
+
+            // Calendar nav
+            document.getElementById('prevMonth').addEventListener('click', () => changeMonth(-1));
+            document.getElementById('nextMonth').addEventListener('click', () => changeMonth(1));
+
+            // Month/year click -> year picker
+            document.getElementById('monthYearDisplay').addEventListener('click', openYearPicker);
+
+            // Close year picker
+            document.getElementById('closeYearPicker').addEventListener('click', () => {
+                document.getElementById('yearPicker').classList.remove('open');
+            });
+            document.getElementById('yearPicker').addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) {
+                    document.getElementById('yearPicker').classList.remove('open');
+                }
+            });
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Reset today
+            document.getElementById('resetToday').addEventListener('click', resetToday);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') changeMonth(-1);
+                else if (e.key === 'ArrowRight') changeMonth(1);
+                else if (e.key === 'Escape') {
+                    document.getElementById('yearPicker').classList.remove('open');
+                }
+            });
+
+            // Handle visibility change to refresh data if needed
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) {
+                    loadData();
+                    renderCalendar();
+                    renderDaily();
+                    if (currentTab === 'stats') renderStats();
+                }
+            });
+
+            console.log('✅ تطبيق متابعة الصلاة جاهز');
+        }
+
+        // Start when DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+
+</body>
+</html>
