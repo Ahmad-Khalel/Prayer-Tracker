@@ -16,13 +16,14 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Create Native Android Wrapper
+      - name: Setup Android Project
         run: |
-          mkdir -p android_app/app/src/main/assets
-          cp index.html android_app/app/src/main/assets/index.html
-          
-          # Create build.gradle for root
-          cat << 'EOF' > android_app/build.gradle
+          mkdir -p app/src/main/assets
+          mkdir -p app/src/main/java/com/prayer/tracker
+          cp index.html app/src/main/assets/index.html
+
+          # Root build.gradle
+          cat << 'EOF' > build.gradle
           buildscript {
               repositories { google(); mavenCentral() }
               dependencies { classpath 'com.android.tools.build:gradle:8.1.1' }
@@ -30,8 +31,13 @@ jobs:
           allprojects { repositories { google(); mavenCentral() } }
           EOF
 
-          # Create app build.gradle
-          cat << 'EOF' > android_app/app/build.gradle
+          # settings.gradle
+          cat << 'EOF' > settings.gradle
+          include ':app'
+          EOF
+
+          # app/build.gradle
+          cat << 'EOF' > app/build.gradle
           plugins { id 'com.android.application' }
           android {
               namespace 'com.prayer.tracker'
@@ -46,9 +52,8 @@ jobs:
           }
           EOF
 
-          # Create AndroidManifest
-          mkdir -p android_app/app/src/main/java/com/prayer/tracker
-          cat << 'EOF' > android_app/app/src/main/AndroidManifest.xml
+          # AndroidManifest.xml
+          cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <application android:label="متابعة الصلاة" android:allowBackup="true" android:supportsRtl="true">
                   <activity android:name=".MainActivity" android:exported="true" android:configChanges="orientation|screenSize">
@@ -61,8 +66,8 @@ jobs:
           </manifest>
           EOF
 
-          # Create MainActivity.java
-          cat << 'EOF' > android_app/app/src/main/java/com/prayer/tracker/MainActivity.java
+          # MainActivity.java
+          cat << 'EOF' > app/src/main/java/com/prayer/tracker/MainActivity.java
           package com.prayer.tracker;
           import android.os.Bundle;
           import android.webkit.WebSettings;
@@ -85,19 +90,14 @@ jobs:
           }
           EOF
 
-          # Gradle wrapper settings
-          mkdir -p android_app/gradle/wrapper
-          cat << 'EOF' > android_app/gradle/wrapper/gradle-wrapper.properties
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
-          EOF
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      - name: Build APK with Gradle
-        run: |
-          cd android_app
-          gradle assembleDebug
+      - name: Build APK
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Prayer-Tracker-APK
-          path: android_app/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
